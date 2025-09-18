@@ -16,4 +16,7 @@ function onSearch(query: string) {
   <div style="max-width: 680px; margin: 0 auto">
     <SearchInput v-model="q" placeholder="검색어를 입력해주세요" @submit="onSearch" />
   </div>
+  <ul>
+    <!-- <li v-for=""></li> -->
+  </ul>
 </template>

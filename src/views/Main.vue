@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Routine from '../components/Routine.vue'
 import Todo from '../components/Todo.vue'
-import TodoList from '../components/TodoList.vue'
 </script>
 
 <template>
