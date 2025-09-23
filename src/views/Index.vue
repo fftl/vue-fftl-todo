@@ -1,14 +1,30 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { signUp, idCheck } from '@/services/member'
+import { signUp, idCheck, login } from '@/services/member'
+import type { LoginRequest, LoginResponse } from '@/types/member'
+import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
 const username = ref('')
 const password = ref('')
+const auth = useAuthStore()
 
-function runIdCheck() {
-  const test = idCheck(username.value)
-  console.log(test)
+async function doLogin() {
+  const loginRequest: LoginRequest = {
+    username: username.value,
+    password: password.value,
+  }
+
+  try {
+    const res = await login(loginRequest)
+    console.log(res)
+    //토큰 저장
+    auth.setToken(res.data.access, res.data.refresh)
+    await router.push('/main')
+  } catch (e) {
+    console.error(e)
+  }
 }
 </script>
 
@@ -19,7 +35,7 @@ function runIdCheck() {
     <span>아이디 : </span><input type="text" v-model="username" />
     <div></div>
     <span>비밀번호 : </span><input type="password" v-model="password" />
-    <button @click="runIdCheck">로그인</button>
+    <button @click="doLogin">로그인</button>
     <RouterLink class="start" to="/signup">회원가입</RouterLink>
   </div>
 </template>

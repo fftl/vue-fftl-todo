@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import Routine from '../components/Routine.vue'
 import Todo from '../components/Todo.vue'
+import { ref } from 'vue'
+
+const text = ref('')
 </script>
 
 <template>

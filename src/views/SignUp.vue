@@ -17,7 +17,7 @@ function doSignUp() {
     password: password.value,
   }
 
-  signUp(loginRequest)
+  console.log(signUp(loginRequest))
 }
 </script>
 
