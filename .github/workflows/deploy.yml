@@ -37,8 +37,8 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          sudo docker build -t ghcr.io/${{ github.repository }}/frontend:latest .
-          sudo docker push ghcr.io/${{ github.repository }}/frontend:latest
+          docker build -t ghcr.io/${{ github.repository }}/frontend:latest .
+          docker push ghcr.io/${{ github.repository }}/frontend:latest
 
       # SSH 배포
       - name: Deploy via SSH
