@@ -4,6 +4,10 @@ on:
   push:
     branches: ['main'] # main에 push 될 때만 실행
 
+permissions:
+  contents: read
+  packages: write # ← 중요!
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
