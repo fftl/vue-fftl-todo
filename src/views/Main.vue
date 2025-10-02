@@ -1,137 +1,193 @@
 <!-- src/views/Main.vue -->
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import RoutineBar from '@/components/routine/RoutineBar.vue' // 루틴 칩 목록 + +New 버튼
-import DateSwitcher from '@/components/common/DateSwitcher.vue' // ←/→ + 📅
-import Routine from '@/components/Routine.vue' // 기존 섹션(원하면 유지)
-import Todo from '@/components/Todo.vue' // 입력 + 추가
-import TodoList from '@/components/TodoList.vue' // 목록 표시
+import RoutineBar from '@/components/routine/RoutineBar.vue'
+import DateSwitcher from '@/components/common/DateSwitcher.vue'
+import Routine from '@/components/Routine.vue'
+import Todo from '@/components/Todo.vue'
+import TodoList from '@/components/TodoList.vue'
 
-// 날짜 상태 (YYYY-MM-DD)
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
-
-// 루틴 목록 (간단 요약 타입)
 type RoutineSummary = { id: number; name: string }
 const routines = ref<RoutineSummary[]>([])
 
-// --- 서비스 호출부 (실제 API 로직으로 교체하세요) ---
 async function loadRoutines() {
-  // 예: const { data } = await api.get('/routines')
-  // routines.value = data
   routines.value = [
     { id: 1, name: '아침 루틴' },
     { id: 2, name: '운동 루틴' },
   ]
 }
-
 async function createRoutineFromCurrentList(name: string) {
-  // 예: await api.post('/routines', { name, items: currentTodosSnapshot })
-  // const created = await ...
-  // routines.value.unshift(created)
   routines.value.unshift({ id: Date.now(), name })
 }
-
 async function applyRoutineToDate(id: number, date: string) {
-  // 예: await api.post(`/routines/${id}/apply?date=${date}`)
-  // 적용 후 TodoList가 해당 날짜 목록을 새로 고치도록 이벤트/상태를 갱신
-  // 여기서는 간단히 콘솔만
   console.log('apply routine', id, 'to', date)
 }
-
-// DateSwitcher 변경 시 호출
 function onChangeDate(d: string) {
   selectedDate.value = d
-  // TodoList가 날짜를 기반으로 로드하도록 prop/emit/Pinia 등으로 신호 주면 됨
-  // 예) 이벤트 버스나 Pinia store의 selectedDate 갱신
 }
-
 function onCreateRoutine() {
   const name = window.prompt('루틴 이름을 입력하세요')
   if (!name?.trim()) return
   createRoutineFromCurrentList(name.trim())
 }
-
 function onApplyRoutine(id: number) {
   applyRoutineToDate(id, selectedDate.value)
 }
 
-onMounted(() => {
-  loadRoutines()
-})
+onMounted(loadRoutines)
 </script>
 
 <template>
-  <div class="container">
-    <!-- 상단 타이틀(선택) -->
-    <h1 class="page-title">Routine</h1>
+  <div class="page">
+    <header class="page__header">
+      <h1 class="page__title">Routine</h1>
+      <button class="btn btn--primary" @click="onCreateRoutine">+ New</button>
+    </header>
 
-    <!-- 루틴 바: 칩 + +New -->
-    <section class="section">
-      <div class="section-header">
-        <h2>Routines</h2>
-        <button class="btn-new" @click="onCreateRoutine">+ New</button>
+    <!-- Routines -->
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">Routines</h2>
+        <p class="card__subtitle">자주 쓰는 작업을 묶어 한 번에 추가하세요</p>
       </div>
-      <RoutineBar :routines="routines" @apply="onApplyRoutine" />
+      <div class="card__body">
+        <RoutineBar :routines="routines" @apply="onApplyRoutine" />
+      </div>
     </section>
 
-    <!-- 날짜 스위처 -->
-    <section class="section">
-      <DateSwitcher :model-value="selectedDate" @update:model-value="onChangeDate" />
+    <!-- Date & Controls -->
+    <section class="card">
+      <div class="card__body center">
+        <DateSwitcher :model-value="selectedDate" @update:model-value="onChangeDate" />
+      </div>
     </section>
 
-    <!-- 기존 루틴 섹션(원하면 유지) -->
-    <Routine />
+    <!-- (선택) 기존 섹션 유지 -->
+    <section class="card card--soft">
+      <div class="card__body">
+        <Routine />
+      </div>
+    </section>
 
-    <div class="space" />
-
-    <!-- 입력 + 리스트 -->
-    <section class="section">
-      <h2 class="title">Insert your today Todo.</h2>
-      <Todo />
-      <TodoList />
+    <!-- Todo input + list -->
+    <section class="card">
+      <div class="card__header center">
+        <h2 class="card__title">Insert your today Todo.</h2>
+      </div>
+      <div class="card__body stack">
+        <Todo />
+        <TodoList />
+      </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-.container {
-  max-width: 900px;
+/* 페이지 레이아웃 */
+.page {
+  max-width: 980px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 28px 16px 56px;
+  color: var(--text, #0d1117);
 }
-
-.page-title {
-  text-align: center;
-  margin: 8px 0 16px;
-}
-
-.section {
-  margin-bottom: 18px;
-}
-
-.section-header {
+.page__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
+}
+.page__title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
 }
 
-.btn-new {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #111827;
-  color: #fff;
-  cursor: pointer;
+/* 카드 공통 */
+.card {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, rgba(13, 17, 23, 0.08));
+  border-radius: 16px;
+  box-shadow: var(--shadow, 0 10px 24px rgba(17, 24, 39, 0.08));
+  overflow: hidden;
+  margin-bottom: 16px;
+  animation: fade-in 0.25s ease both;
 }
-
-.space {
-  height: 12px;
+.card--soft {
+  background: color-mix(in oklab, var(--card, #fff) 92%, transparent);
 }
-
-.title {
+.card__header {
+  padding: 18px 20px 6px;
+}
+.card__body {
+  padding: 16px 20px 20px;
+}
+.card__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.card__subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted, #5b667b);
+}
+.center {
   text-align: center;
-  margin: 12px 0;
+}
+.stack {
+  display: grid;
+  gap: 14px;
+}
+
+/* 버튼 */
+.btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border, rgba(13, 17, 23, 0.08));
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.btn--primary {
+  background: linear-gradient(180deg, var(--primary, #3b82f6), var(--primary-press, #326fd1));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
+}
+.btn--primary:hover {
+  transform: translateY(-1px);
+}
+.btn--primary:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+/* 미세 애니메이션 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 640px) {
+  .page__title {
+    font-size: 26px;
+  }
+  .card__body {
+    padding: 14px;
+  }
 }
 </style>

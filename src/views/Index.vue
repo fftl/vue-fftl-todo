@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { signUp, idCheck, login } from '@/services/member'
-import type { LoginRequest, LoginResponse } from '@/types/member'
+import { login } from '@/services/member'
+import type { LoginRequest } from '@/types/member'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -18,8 +18,6 @@ async function doLogin() {
 
   try {
     const res = await login(loginRequest)
-    console.log(res)
-    //토큰 저장
     auth.setToken(res.data.access, res.data.refresh)
     await router.push('/main')
   } catch (e) {
@@ -29,29 +27,106 @@ async function doLogin() {
 </script>
 
 <template>
-  <h1 class="title">fftl-todo</h1>
-  <div class="input">
-    <h2>로그인해봐</h2>
-    <span>아이디 : </span><input type="text" v-model="username" />
-    <div></div>
-    <span>비밀번호 : </span><input type="password" v-model="password" />
-    <button @click="doLogin">로그인</button>
-    <RouterLink class="start" to="/signup">회원가입</RouterLink>
+  <div class="container">
+    <h1 class="title">todo</h1>
+    <p class="subtitle">오늘을 정돈하는 가장 간단한 방법</p>
+
+    <div class="form-group">
+      <label for="username">아이디</label>
+      <input id="username" type="text" v-model="username" placeholder="아이디를 입력하세요" />
+    </div>
+
+    <div class="form-group">
+      <label for="password">비밀번호</label>
+      <input id="password" type="password" v-model="password" placeholder="비밀번호를 입력하세요" />
+    </div>
+
+    <button class="login-btn" @click="doLogin">로그인</button>
+
+    <RouterLink class="signup-link" to="/signup">회원가입</RouterLink>
   </div>
 </template>
 
 <style scoped>
+.container {
+  max-width: 360px;
+  margin: 80px auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
 .title {
-  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
-.start {
+
+.subtitle {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+label {
   display: block;
-  width: fit-content;
-  margin: 16px auto 0;
-  text-decoration: none;
-  padding: 8px 20px;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #333;
 }
-.input {
-  text-align: center;
+
+input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.3);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #4a90e2;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-btn:hover {
+  background: #3a78c2;
+}
+
+.signup-link {
+  display: block;
+  margin-top: 16px;
+  text-decoration: none;
+  color: #4a90e2;
+  font-weight: bold;
+  transition: color 0.2s;
+}
+
+.signup-link:hover {
+  color: #2d5f9f;
 }
 </style>
