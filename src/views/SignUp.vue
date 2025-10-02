@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { LoginRequest } from '@/types/auth'
+import type { LoginRequest } from '@/types/member'
 import { idCheck, signUp } from '@/services/member'
 
 const username = ref('')
