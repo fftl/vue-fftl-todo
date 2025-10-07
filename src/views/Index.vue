@@ -83,7 +83,9 @@ label {
 }
 
 input {
-  width: 100%;
+  display: block; /* 블록 요소로 변경 */
+  width: 100%; /* 버튼과 동일하게 */
+  box-sizing: border-box; /* padding 포함해서 width 계산 */
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 8px;

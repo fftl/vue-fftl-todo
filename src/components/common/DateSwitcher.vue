@@ -1,6 +1,7 @@
 <!-- src/components/common/DateSwitcher.vue -->
 <script setup lang="ts">
 import { computed } from 'vue'
+import { getTodoesDay } from '@/services/todo'
 
 type YMD = string // 'YYYY-MM-DD'
 
@@ -13,6 +14,10 @@ const props = withDefaults(
     showToday: true,
   },
 )
+
+async function doGetTodoes() {
+  console.log(getTodoesDay(props.modelValue))
+}
 
 const emit = defineEmits<{
   (e: 'update:model-value', v: YMD): void
@@ -56,6 +61,7 @@ function next() {
 }
 function today() {
   setDate(toYMD(new Date()))
+  doGetTodoes()
 }
 function onPick(e: Event) {
   const v = (e.target as HTMLInputElement).value as YMD

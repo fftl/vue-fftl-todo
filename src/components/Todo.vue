@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import SearchInput from '@/components/common/SearchInput.vue'
-import { fetchTodos, addTodo, checkTodo } from '@/services/todo'
+import { getTodos, addTodo, checkTodo } from '@/services/todo'
 import type { Todo } from '@/types/todo'
 
 const text = ref('')
@@ -10,7 +10,7 @@ const loading = ref(false)
 
 onMounted(async () => {
   try {
-    todos.value = await fetchTodos()
+    todos.value = await getTodos()
   } catch (e) {
     console.error(e)
   }
