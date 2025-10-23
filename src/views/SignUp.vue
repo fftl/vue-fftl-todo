@@ -23,7 +23,7 @@ const loadingEmailCheck = ref(false)
 const loadingSignUp = ref(false)
 
 function doIdCheck() {
-  if (!username.value || username.value.trim().length < 3) return
+  if (!username.value || username.value.trim().length < 5) return
   loadingIdCheck.value = true
   idCheck(username.value).finally(() => (loadingIdCheck.value = false))
 }
@@ -36,7 +36,7 @@ const passwordMatch = computed(
   () => password.value !== '' && password.value === passwordCheck.value,
 )
 // 아이디 규칙
-const usernameValid = computed(() => username.value.trim().length >= 3)
+const usernameValid = computed(() => username.value.trim().length >= 5)
 
 // 이메일 검사가 통과되었는지
 const emailValidatedOk = computed(() => emailStatus.value === 'ok')
@@ -130,7 +130,7 @@ async function doSignUp() {
         <input
           id="username"
           type="text"
-          placeholder="아이디 (3자 이상)"
+          placeholder="아이디 (5자 이상)"
           v-model="username"
           class="input"
           :class="{ invalid: username && !usernameValid }"

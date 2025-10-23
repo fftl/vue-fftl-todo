@@ -21,11 +21,13 @@ async function doAddTodo(q?: string) {
   if (!t || loading.value) return
   loading.value = true
   try {
-    // ① 서버에 저장
+    console.log('todos.value =', todos.value)
+    console.log('isArray?', Array.isArray(todos.value))
+    console.log('type of todos.value:', typeof todos.value)
+
     const created = await addTodo(t) // Todo 한 건이 돌아온다고 가정
-    // ② 화면에 즉시 추가
+    console.log(created)
     todos.value.unshift(created)
-    // ③ 입력창 비우기
     text.value = ''
   } catch (e) {
     console.error(e)
@@ -54,7 +56,7 @@ function fmt(d: string) {
       v-model="text"
       placeholder="할일을 입력해주세요."
       :disabled="loading"
-      @submit="doAddTodo"
+      @submit="doAddTodo()"
     />
 
     <ul class="list">

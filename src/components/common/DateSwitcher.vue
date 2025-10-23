@@ -52,6 +52,7 @@ const label = computed(() => {
 function setDate(v: YMD) {
   emit('update:model-value', v)
   emit('change', v)
+  doGetTodoes()
 }
 function prev() {
   setDate(addDays(props.modelValue, -1))

@@ -32,7 +32,6 @@ function onSubmit() {
 </script>
 
 <template>
-  <!-- 폼으로 감싸서 Enter 제출도 자연스럽게 지원 -->
   <form class="si-bar" role="search" @submit.prevent="onSubmit">
     <input
       class="si-input"
