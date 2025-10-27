@@ -18,4 +18,12 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use((res) => {
+  // ApiResponse<T> 형태면 data를 한 번 더 풀어서 반환
+  if (res.data && 'data' in res.data) {
+    return res.data.data
+  }
+  return res.data
+})
+
 export default api

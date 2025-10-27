@@ -1,14 +1,16 @@
-import type { LoginRequest, EmailValid } from '@/types/member'
+import type { LoginRequest, EmailValid, LoginResponse } from '@/types/member'
 import api from './index'
+import { httpGet, httpPost } from './http'
 
 export const signUp = (data: LoginRequest) =>
-  api.post('/member', data).then((r) => {
-    r.data.data
+  httpPost('/member', data).then((r) => {
+    r
   })
 export const idCheck = (data: string) =>
-  api.get(`/member/${data}`).then((r) => {
-    r.data
+  httpGet(`/member/${data}`).then((r) => {
+    r
   })
-export const login = (data: LoginRequest) => api.post('/member/login', data)
+export const login = (data: LoginRequest) =>
+  httpPost<LoginResponse>('/member/login', data).then((r) => r)
 export const emailValidate = (email: string) =>
-  api.post<EmailValid>(`/member/email/valid?email=${email}`).then((r) => r.data)
+  httpPost<EmailValid>(`/member/email/valid?email=${email}`).then((r) => r)

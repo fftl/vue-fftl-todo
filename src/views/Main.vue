@@ -6,10 +6,19 @@ import DateSwitcher from '@/components/common/DateSwitcher.vue'
 import Routine from '@/components/Routine.vue'
 import Todo from '@/components/Todo.vue'
 import TodoList from '@/components/TodoList.vue'
+import type { Todo as TodoModel } from '@/types/todo'
+import { getTodoesDay, addTodo } from '@/services/todo'
+
+type YMD = string
 
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
 type RoutineSummary = { id: number; name: string }
 const routines = ref<RoutineSummary[]>([])
+const todos = ref<TodoModel[]>([]) // ✅ 배열로 초기화
+
+async function fetchTodos(date: YMD) {
+  todos.value = (await getTodoesDay(date)) ?? []
+}
 
 async function loadRoutines() {
   routines.value = [
@@ -23,9 +32,12 @@ async function createRoutineFromCurrentList(name: string) {
 async function applyRoutineToDate(id: number, date: string) {
   console.log('apply routine', id, 'to', date)
 }
-function onChangeDate(d: string) {
+
+function onChangeDate(d: YMD) {
   selectedDate.value = d
+  fetchTodos(d)
 }
+
 function onCreateRoutine() {
   const name = window.prompt('루틴 이름을 입력하세요')
   if (!name?.trim()) return
@@ -34,22 +46,24 @@ function onCreateRoutine() {
 function onApplyRoutine(id: number) {
   applyRoutineToDate(id, selectedDate.value)
 }
+// (선택) 새 항목 추가 시, 화면에 즉시 반영
+async function onCreateTodo(text: string) {
+  const created = await addTodo(text) // Todo 1건 반환하도록 구현
+  if (!Array.isArray(todos.value)) todos.value = []
+  todos.value.unshift(created) // 또는 todos.value = [created, ...todos.value]
+}
 
-onMounted(loadRoutines)
+onMounted(() => fetchTodos(selectedDate.value))
 </script>
 
 <template>
   <div class="page">
-    <header class="page__header">
-      <h1 class="page__title">Routine</h1>
-      <button class="btn btn--primary" @click="onCreateRoutine">+ New</button>
-    </header>
+    <header class="page__header"></header>
 
     <!-- Routines -->
     <section class="card">
       <div class="card__header">
         <h2 class="card__title">Routines</h2>
-        <p class="card__subtitle">자주 쓰는 작업을 묶어 한 번에 추가하세요</p>
       </div>
       <div class="card__body">
         <RoutineBar :routines="routines" @apply="onApplyRoutine" />
@@ -66,7 +80,7 @@ onMounted(loadRoutines)
     <!-- (선택) 기존 섹션 유지 -->
     <section class="card card--soft">
       <div class="card__body">
-        <Routine />
+        <Routine :todos="todos" />
       </div>
     </section>
 
@@ -74,6 +88,10 @@ onMounted(loadRoutines)
     <section class="card">
       <div class="card__header center">
         <h2 class="card__title">Insert your today Todo.</h2>
+        <p class="card__subtitle sub_button" @click="onCreateRoutine">
+          자주 쓰는 작업을 묶어 한 번에 추가하세요
+        </p>
+        <!-- </button> -->
       </div>
       <div class="card__body stack">
         <Todo />
@@ -167,6 +185,36 @@ onMounted(loadRoutines)
 .btn--primary:active {
   transform: translateY(0);
   filter: brightness(0.97);
+}
+
+.sub_button:hover {
+  cursor: pointer;
+}
+
+/* 헤더를 기준점으로 */
+.card__header {
+  position: relative; /* ✅ 기준 요소 */
+  padding-right: 56px; /* 우측 아이콘/버튼과 겹치지 않도록 여유 */
+}
+
+/* 우측 상단 고정 */
+.sub_button {
+  position: absolute; /* ✅ 절대 배치 */
+  top: 12px; /* 필요에 맞게 미세조정 */
+  right: 16px;
+  font-size: 13px;
+  color: var(--primary, #3b82f6);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline; /* 링크 느낌 유지 원하면 */
+}
+
+/* 헤더의 가운데 정렬은 타이틀에만 적용 (전체 center 대신) */
+.card__title {
+  text-align: center; /* ✅ 타이틀만 중앙 */
+  width: 100%;
 }
 
 /* 미세 애니메이션 */

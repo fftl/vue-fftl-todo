@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import type { Todo } from '@/types/todo'
 
-const empty = ref(true)
+const props = defineProps<{ todos: Todo[] }>()
+const empty = computed(() => props.todos.length === 0)
 </script>
 
 <template>
-  <h2 v-if="empty">list</h2>
-  <h2 v-else>등록된 루틴이 없습니다.</h2>
+  <div>
+    <h2 v-if="empty">등록된 투두가 없습니다.</h2>
+    <ul v-else>
+      <li v-for="t in props.todos" :key="t.todoId">
+        {{ t.text }} ({{ t.date }}) <span v-if="t.checked">✔</span>
+      </li>
+    </ul>
+  </div>
 </template>

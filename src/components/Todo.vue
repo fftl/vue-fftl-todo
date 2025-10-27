@@ -5,12 +5,13 @@ import { getTodos, addTodo, checkTodo } from '@/services/todo'
 import type { Todo } from '@/types/todo'
 
 const text = ref('')
-const todos = ref<Todo[]>([])
+const todos = ref<Todo[]>([]) // ✅
 const loading = ref(false)
 
 onMounted(async () => {
   try {
-    todos.value = await getTodos()
+    const data = await getTodos()
+    todos.value = data
   } catch (e) {
     console.error(e)
   }
@@ -21,10 +22,6 @@ async function doAddTodo(q?: string) {
   if (!t || loading.value) return
   loading.value = true
   try {
-    console.log('todos.value =', todos.value)
-    console.log('isArray?', Array.isArray(todos.value))
-    console.log('type of todos.value:', typeof todos.value)
-
     const created = await addTodo(t) // Todo 한 건이 돌아온다고 가정
     console.log(created)
     todos.value.unshift(created)

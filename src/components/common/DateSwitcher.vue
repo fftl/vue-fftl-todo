@@ -3,26 +3,17 @@
 import { computed } from 'vue'
 import { getTodoesDay } from '@/services/todo'
 
-type YMD = string // 'YYYY-MM-DD'
+type YMD = string
+const props = defineProps<{ modelValue: YMD; showToday?: boolean }>()
+const emit = defineEmits<{ (e: 'update:model-value', v: YMD): void }>()
 
-const props = withDefaults(
-  defineProps<{
-    modelValue: YMD
-    showToday?: boolean
-  }>(),
-  {
-    showToday: true,
-  },
-)
+function setDate(v: YMD) {
+  emit('update:model-value', v) // ✅ 부모가 이 이벤트를 받아서 fetchTodos 수행
+}
 
 async function doGetTodoes() {
   console.log(getTodoesDay(props.modelValue))
 }
-
-const emit = defineEmits<{
-  (e: 'update:model-value', v: YMD): void
-  (e: 'change', v: YMD): void
-}>()
 
 function toYMD(d: Date): YMD {
   const y = d.getFullYear()
@@ -30,17 +21,31 @@ function toYMD(d: Date): YMD {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-function addDays(ymd: YMD, delta: number): YMD {
+
+function addDays(ymd: string, delta: number): string {
   const [y, m, d] = ymd.split('-').map(Number)
-  const dt = new Date(y, m - 1, d)
-  dt.setDate(dt.getDate() + delta)
+  const dt = new Date(y, m - 1, d) // 기준 날짜
+  const today = new Date() // 오늘 날짜
+
+  // 날짜를 하루 단위로만 비교하기 위해 시/분/초를 0으로 맞춤
+  today.setHours(0, 0, 0, 0)
+  dt.setHours(0, 0, 0, 0)
+
+  // delta 적용 후 날짜가 오늘을 넘는지 체크
+  const newDt = new Date(dt)
+  newDt.setDate(dt.getDate() + delta)
+
+  if (newDt.getTime() < today.getTime()) {
+    // 오늘보다 이전이거나 같은 경우만 적용
+    dt.setDate(dt.getDate() + delta)
+  }
+
   return toYMD(dt)
 }
 
 const label = computed(() => {
   const [y, m, d] = props.modelValue.split('-').map(Number)
   const dt = new Date(y, m - 1, d)
-  // 예: 2025. 9. 26. (금)
   return new Intl.DateTimeFormat(undefined, {
     year: 'numeric',
     month: 'numeric',
@@ -49,19 +54,18 @@ const label = computed(() => {
   }).format(dt)
 })
 
-function setDate(v: YMD) {
-  emit('update:model-value', v)
-  emit('change', v)
-  doGetTodoes()
-}
 function prev() {
   setDate(addDays(props.modelValue, -1))
+  doGetTodoes()
 }
 function next() {
   setDate(addDays(props.modelValue, +1))
+  doGetTodoes()
 }
-function today() {
-  setDate(toYMD(new Date()))
+function yesterday() {
+  const today = new Date()
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)
+  setDate(toYMD(yesterday))
   doGetTodoes()
 }
 function onPick(e: Event) {
@@ -81,7 +85,7 @@ function onPick(e: Event) {
 
     <button class="nav" type="button" @click="next" aria-label="다음 날">→</button>
 
-    <button v-if="showToday" class="today" type="button" @click="today">오늘</button>
+    <button v-if="showToday" class="today" type="button" @click="yesterday">어제</button>
   </div>
 </template>
 
