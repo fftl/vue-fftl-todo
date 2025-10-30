@@ -4,45 +4,27 @@ import SearchInput from '@/components/common/SearchInput.vue'
 import { getTodos, addTodo, checkTodo } from '@/services/todo'
 import type { Todo } from '@/types/todo'
 
-const text = ref('')
-const todos = ref<Todo[]>([]) // ✅
-const loading = ref(false)
+const input = ref('')
 
-onMounted(async () => {
-  try {
-    const data = await getTodos()
-    todos.value = data
-  } catch (e) {
-    console.error(e)
-  }
-})
+const props = defineProps<{
+  loading: boolean
+  todos: Todo[]
+  fmt: (d: string) => string
+}>()
 
-async function doAddTodo(q?: string) {
-  const t = (q ?? text.value).trim()
-  if (!t || loading.value) return
-  loading.value = true
-  try {
-    const created = await addTodo(t) // Todo 한 건이 돌아온다고 가정
-    console.log(created)
-    todos.value.unshift(created)
-    text.value = ''
-  } catch (e) {
-    console.error(e)
-    alert('등록에 실패했어요.')
-  } finally {
-    loading.value = false
-  }
+const emit = defineEmits<{
+  (e: 'add-todo', text?: string): void
+  (e: 'toggle', todo: Todo): void
+}>()
+
+function onSubmit() {
+  emit('add-todo', input.value)
+  //TODO
+  // input 비우기 필요
 }
 
-function toggle(todo: Todo) {
-  // 체크 토글 UI만 즉시 반영 (서버 반영 API 있으면 호출)
-  checkTodo(todo.todoId)
-  todo.checked = !todo.checked
-}
-
-function fmt(d: string) {
-  // "2025-09-26" → 보기 좋게
-  return new Date(d).toLocaleDateString()
+function onToggle(todo: Todo) {
+  emit('toggle', todo)
 }
 </script>
 
@@ -50,16 +32,16 @@ function fmt(d: string) {
   <div style="max-width: 680px; margin: 0 auto">
     <!-- SearchInput은 입력/제출만 담당, API 호출은 부모(doAddTodo) -->
     <SearchInput
-      v-model="text"
+      v-model="input"
       placeholder="할일을 입력해주세요."
       :disabled="loading"
-      @submit="doAddTodo()"
+      @submit="onSubmit()"
     />
 
     <ul class="list">
       <li v-for="t in todos" :key="t.todoId" class="item">
         <label class="row">
-          <input type="checkbox" :checked="t.checked" @change="toggle(t)" />
+          <input type="checkbox" :checked="t.checked" @change="onToggle(t)" />
           <span class="text" :class="{ done: t.checked }">{{ t.text }}</span>
         </label>
         <time class="date">{{ fmt(t.date) }}</time>

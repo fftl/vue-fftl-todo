@@ -4,31 +4,38 @@ import { onMounted, ref } from 'vue'
 import RoutineBar from '@/components/routine/RoutineBar.vue'
 import DateSwitcher from '@/components/common/DateSwitcher.vue'
 import Routine from '@/components/Routine.vue'
-import Todo from '@/components/Todo.vue'
 import TodoList from '@/components/TodoList.vue'
-import type { Todo as TodoModel } from '@/types/todo'
-import { getTodoesDay, addTodo } from '@/services/todo'
+import Todo from '@/components/Todo.vue'
+import { getTodoesDay, addTodo, getTodos } from '@/services/todo'
+import type { RoutineRequest } from '@/types/routine'
+import { addRoutine } from '@/services/routine'
+import { useTodos } from '@/composables/useTodos'
+
+const {
+  text,
+  loading,
+  todos,
+  routines,
+  onCreateRoutine,
+  makeTodosByRoutine,
+  doAddTodo,
+  toggle,
+  fmt,
+} = useTodos()
 
 type YMD = string
-
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
-type RoutineSummary = { id: number; name: string }
-const routines = ref<RoutineSummary[]>([])
-const todos = ref<TodoModel[]>([]) // ✅ 배열로 초기화
 
 async function fetchTodos(date: YMD) {
   todos.value = (await getTodoesDay(date)) ?? []
 }
 
-async function loadRoutines() {
-  routines.value = [
-    { id: 1, name: '아침 루틴' },
-    { id: 2, name: '운동 루틴' },
-  ]
-}
-async function createRoutineFromCurrentList(name: string) {
-  routines.value.unshift({ id: Date.now(), name })
-}
+async function loadRoutines() {}
+
+// async function createRoutineFromCurrentList(name: string) {
+//   routines.value.unshift({ id: Date.now(), name })
+// }
+
 async function applyRoutineToDate(id: number, date: string) {
   console.log('apply routine', id, 'to', date)
 }
@@ -36,21 +43,6 @@ async function applyRoutineToDate(id: number, date: string) {
 function onChangeDate(d: YMD) {
   selectedDate.value = d
   fetchTodos(d)
-}
-
-function onCreateRoutine() {
-  const name = window.prompt('루틴 이름을 입력하세요')
-  if (!name?.trim()) return
-  createRoutineFromCurrentList(name.trim())
-}
-function onApplyRoutine(id: number) {
-  applyRoutineToDate(id, selectedDate.value)
-}
-// (선택) 새 항목 추가 시, 화면에 즉시 반영
-async function onCreateTodo(text: string) {
-  const created = await addTodo(text) // Todo 1건 반환하도록 구현
-  if (!Array.isArray(todos.value)) todos.value = []
-  todos.value.unshift(created) // 또는 todos.value = [created, ...todos.value]
 }
 
 onMounted(() => fetchTodos(selectedDate.value))
@@ -66,7 +58,7 @@ onMounted(() => fetchTodos(selectedDate.value))
         <h2 class="card__title">Routines</h2>
       </div>
       <div class="card__body">
-        <RoutineBar :routines="routines" @apply="onApplyRoutine" />
+        <Routine :routines="routines" />
       </div>
     </section>
 
@@ -80,7 +72,7 @@ onMounted(() => fetchTodos(selectedDate.value))
     <!-- (선택) 기존 섹션 유지 -->
     <section class="card card--soft">
       <div class="card__body">
-        <Routine :todos="todos" />
+        <TodoList :todos="todos" />
       </div>
     </section>
 
@@ -94,8 +86,14 @@ onMounted(() => fetchTodos(selectedDate.value))
         <!-- </button> -->
       </div>
       <div class="card__body stack">
-        <Todo />
-        <TodoList />
+        <Todo
+          :text="text"
+          :loading="loading"
+          :todos="todos"
+          :fmt="fmt"
+          @add-todo="doAddTodo"
+          @toggle="toggle"
+        />
       </div>
     </section>
   </div>

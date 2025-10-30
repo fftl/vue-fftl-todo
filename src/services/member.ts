@@ -12,5 +12,6 @@ export const idCheck = (data: string) =>
   })
 export const login = (data: LoginRequest) =>
   httpPost<LoginResponse>('/member/login', data).then((r) => r)
+
 export const emailValidate = (email: string) =>
   httpPost<EmailValid>(`/member/email/valid?email=${email}`).then((r) => r)
