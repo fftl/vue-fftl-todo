@@ -1,5 +1,5 @@
 import { ref, onMounted } from 'vue'
-import { addRoutine, getRoutines } from '@/services/routine'
+import { addRoutine, getRoutines, makeTodos } from '@/services/routine'
 import { getTodos, addTodo, checkTodo } from '@/services/todo'
 import type { Routine, RoutineRequest } from '@/types/routine'
 import type { Todo } from '@/types/todo'
@@ -8,6 +8,7 @@ export function useTodos() {
   const text = ref('')
   const loading = ref(false)
   const todos = ref<Todo[]>([]) // ✅ 배열로 초기화
+  const histories = ref<Todo[]>([])
   const routines = ref<Routine[]>([])
 
   onMounted(async () => {
@@ -34,7 +35,15 @@ export function useTodos() {
     console.log(data)
   }
 
-  function makeTodosByRoutine(id: number) {}
+  async function makeTodosByRoutine(routineId: number) {
+    console.log(routineId)
+    try {
+      todos.value = await makeTodos(routineId)
+      console.log(todos.value)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   async function doAddTodo(q?: string) {
     const t = (q ?? text.value).trim()
@@ -67,6 +76,7 @@ export function useTodos() {
     text,
     loading,
     todos,
+    histories,
     routines,
     onCreateRoutine,
     makeTodosByRoutine,

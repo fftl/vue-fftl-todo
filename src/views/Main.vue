@@ -15,6 +15,7 @@ const {
   text,
   loading,
   todos,
+  histories,
   routines,
   onCreateRoutine,
   makeTodosByRoutine,
@@ -26,15 +27,9 @@ const {
 type YMD = string
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
 
-async function fetchTodos(date: YMD) {
-  todos.value = (await getTodoesDay(date)) ?? []
+async function fetchHistories(date: YMD) {
+  histories.value = (await getTodoesDay(date)) ?? []
 }
-
-async function loadRoutines() {}
-
-// async function createRoutineFromCurrentList(name: string) {
-//   routines.value.unshift({ id: Date.now(), name })
-// }
 
 async function applyRoutineToDate(id: number, date: string) {
   console.log('apply routine', id, 'to', date)
@@ -42,10 +37,10 @@ async function applyRoutineToDate(id: number, date: string) {
 
 function onChangeDate(d: YMD) {
   selectedDate.value = d
-  fetchTodos(d)
+  fetchHistories(d)
 }
 
-onMounted(() => fetchTodos(selectedDate.value))
+onMounted(() => fetchHistories(selectedDate.value))
 </script>
 
 <template>
@@ -58,21 +53,17 @@ onMounted(() => fetchTodos(selectedDate.value))
         <h2 class="card__title">Routines</h2>
       </div>
       <div class="card__body">
-        <Routine :routines="routines" />
+        <Routine :routines="routines" @make-todo="makeTodosByRoutine" />
       </div>
     </section>
 
-    <!-- Date & Controls -->
+    <!-- 합쳐진 히스토리 카드 -->
     <section class="card">
-      <div class="card__body center">
+      <div class="card__header history__header">
         <DateSwitcher :model-value="selectedDate" @update:model-value="onChangeDate" />
       </div>
-    </section>
-
-    <!-- (선택) 기존 섹션 유지 -->
-    <section class="card card--soft">
       <div class="card__body">
-        <TodoList :todos="todos" />
+        <TodoList :histories="histories" />
       </div>
     </section>
 
@@ -235,5 +226,19 @@ onMounted(() => fetchTodos(selectedDate.value))
   .card__body {
     padding: 14px;
   }
+}
+
+/* 히스토리 카드 헤더(날짜 선택 영역) */
+.history__header {
+  display: flex;
+  justify-content: center;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--border, rgba(13, 17, 23, 0.08));
+  background: color-mix(in oklab, var(--card, #fff) 96%, transparent);
+}
+
+/* DateSwitcher가 가운데서 살짝 더 조밀하게 보이도록 간격 조정 (선택) */
+.history__header :deep(.ds-wrap) {
+  gap: 12px;
 }
 </style>

@@ -4,8 +4,14 @@ import { computed } from 'vue'
 import { getTodoesDay } from '@/services/todo'
 
 type YMD = string
+
 const props = defineProps<{ modelValue: YMD; showToday?: boolean }>()
 const emit = defineEmits<{ (e: 'update:model-value', v: YMD): void }>()
+
+const today = new Date()
+const yesYMD = computed(() =>
+  toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)),
+)
 
 function setDate(v: YMD) {
   emit('update:model-value', v) // ✅ 부모가 이 이벤트를 받아서 fetchTodos 수행
@@ -22,7 +28,7 @@ function toYMD(d: Date): YMD {
   return `${y}-${m}-${day}`
 }
 
-function addDays(ymd: string, delta: number): string {
+function check(ymd: string, delta: number): boolean {
   const [y, m, d] = ymd.split('-').map(Number)
   const dt = new Date(y, m - 1, d) // 기준 날짜
   const today = new Date() // 오늘 날짜
@@ -32,14 +38,26 @@ function addDays(ymd: string, delta: number): string {
   dt.setHours(0, 0, 0, 0)
 
   // delta 적용 후 날짜가 오늘을 넘는지 체크
-  const newDt = new Date(dt)
+  const newDt = new Date(dt.getTime() + delta)
   newDt.setDate(dt.getDate() + delta)
 
   if (newDt.getTime() < today.getTime()) {
     // 오늘보다 이전이거나 같은 경우만 적용
-    dt.setDate(dt.getDate() + delta)
+    return true
   }
 
+  return false
+}
+
+function addDays(ymd: string, delta: number): string {
+  const [y, m, d] = ymd.split('-').map(Number)
+
+  const dt = new Date(y, m - 1, d) // 기준 날짜
+
+  if (check(ymd, delta)) {
+    // 오늘보다 이전이거나 같은 경우만 적용
+    dt.setDate(dt.getDate() + delta)
+  }
   return toYMD(dt)
 }
 
@@ -58,19 +76,25 @@ function prev() {
   setDate(addDays(props.modelValue, -1))
   doGetTodoes()
 }
+
 function next() {
   setDate(addDays(props.modelValue, +1))
   doGetTodoes()
 }
+
 function yesterday() {
-  const today = new Date()
-  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)
-  setDate(toYMD(yesterday))
+  const [y, m, d] = props.modelValue.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
   doGetTodoes()
 }
+
 function onPick(e: Event) {
   const v = (e.target as HTMLInputElement).value as YMD
-  if (v) setDate(v)
+  if (check(v, 0)) {
+    setDate(v)
+  } else {
+    alert('test')
+  }
 }
 </script>
 
@@ -79,7 +103,7 @@ function onPick(e: Event) {
     <button class="nav" type="button" @click="prev" aria-label="이전 날">←</button>
 
     <div class="center">
-      <input class="picker" type="date" :value="modelValue" @input="onPick" />
+      <input class="picker" type="date" :value="modelValue" @input="onPick" :max="yesYMD" />
       <span class="label">{{ label }}</span>
     </div>
 
