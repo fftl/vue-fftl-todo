@@ -1,16 +1,17 @@
 <!-- src/views/Main.vue -->
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import RoutineBar from '@/components/routine/RoutineBar.vue'
+import { RouterLink, useRouter } from 'vue-router'
 import DateSwitcher from '@/components/common/DateSwitcher.vue'
 import Routine from '@/components/Routine.vue'
 import TodoList from '@/components/TodoList.vue'
 import Todo from '@/components/Todo.vue'
 import { getTodoesDay, addTodo, getTodos } from '@/services/todo'
-import type { RoutineRequest } from '@/types/routine'
-import { addRoutine } from '@/services/routine'
 import { useTodos } from '@/composables/useTodos'
+import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
+const auth = useAuthStore()
 const {
   text,
   loading,
@@ -20,6 +21,7 @@ const {
   onCreateRoutine,
   makeTodosByRoutine,
   doAddTodo,
+  removeTodo,
   toggle,
   fmt,
 } = useTodos()
@@ -40,12 +42,34 @@ function onChangeDate(d: YMD) {
   fetchHistories(d)
 }
 
+/** 로그아웃: 토큰 정리 → 로그인 화면으로 */
+async function onLogout() {
+  try {
+    // 필요하면 서버에 /auth/logout 호출
+    // await api.post('/auth/logout')
+
+    auth.clearTokens()
+    // localStorage.removeItem('access_token')
+    // localStorage.removeItem('refresh_token')
+    sessionStorage.clear()
+
+    router.replace({ name: 'index' }) // 라우트 이름이 다르면 path로 교체
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 onMounted(() => fetchHistories(selectedDate.value))
 </script>
 
 <template>
   <div class="page">
-    <header class="page__header"></header>
+    <header class="page__header">
+      <h1 class="page__title">Routines</h1>
+      <div class="header-actions">
+        <button class="btn btn--ghost" @click="onLogout">로그아웃</button>
+      </div>
+    </header>
 
     <!-- Routines -->
     <section class="card">
@@ -84,6 +108,7 @@ onMounted(() => fetchHistories(selectedDate.value))
           :fmt="fmt"
           @add-todo="doAddTodo"
           @toggle="toggle"
+          @remove="removeTodo"
         />
       </div>
     </section>

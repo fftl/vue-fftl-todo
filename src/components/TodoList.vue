@@ -44,11 +44,12 @@ function fmtKOR(date: string) {
       </div>
 
       <ul class="list">
-        <li v-for="t in items" :key="t.todoId" class="item">
+        <li v-for="t in items" :key="t.todoId" :class="['item', { 'item--done': t.checked }]">
           <div class="item__left">
             <span class="dot" :class="{ done: t.checked }" />
             <span class="text" :class="{ doneText: t.checked }">{{ t.text }}</span>
           </div>
+
           <span class="pill" :class="t.checked ? 'pill--done' : 'pill--open'">
             {{ t.checked ? '완료' : '기록' }}
           </span>
@@ -131,11 +132,13 @@ function fmtKOR(date: string) {
   background: var(--card, #fff);
   box-shadow: 0 6px 14px rgba(17, 24, 39, 0.06);
 }
+
 .item__left {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
+
 .dot {
   width: 10px;
   height: 10px;
@@ -143,17 +146,26 @@ function fmtKOR(date: string) {
   background: #e5e7eb;
   border: 1px solid #d1d5db;
 }
-.dot.done {
-  background: #10b981;
-  border-color: #059669;
-}
+
 .text {
   font-size: 14px;
   color: var(--text, #0d1117);
 }
-.doneText {
+
+/* 🔥 완료된 항목 공통 스타일 */
+.item--done .text {
   color: #6b7280;
   text-decoration: line-through;
+}
+
+.item--done .dot {
+  background: #10b981;
+  border-color: #059669;
+}
+
+.item--done {
+  background: #f9fafb; /* 선택: 완료된 항목 배경을 살짝 옅게 */
+  opacity: 0.96;
 }
 
 /* 상태 Pill */

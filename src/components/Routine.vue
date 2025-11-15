@@ -7,11 +7,15 @@ const empty = computed(() => props.routines.length === 0)
 
 const emit = defineEmits<{
   (e: 'make-todo', routineId: number): void
+  (e: 'remove', routineId: number): void // 🔥 삭제 이벤트 추가
 }>()
 
 function makeTodos(routineId: number) {
   emit('make-todo', routineId)
-  console.log('test')
+}
+
+function onRemove(routineId: number) {
+  emit('remove', routineId)
 }
 </script>
 
@@ -24,6 +28,9 @@ function makeTodos(routineId: number) {
         <button class="chip" type="button" @click="makeTodos(r.routineId)">
           <span class="chip__id">{{ r.routineId }}</span>
           <span class="chip__name">{{ r.routineName }}</span>
+
+          <!-- 🔥 오른쪽 X 버튼 -->
+          <span class="chip__remove" @click.stop="onRemove(r.routineId)">×</span>
         </button>
       </li>
     </ul>
@@ -31,37 +38,37 @@ function makeTodos(routineId: number) {
 </template>
 
 <style scoped>
+/* 리스트 스타일(점) 완전히 제거 */
 .chip-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px 12px;
-  list-style: none;
   padding: 0;
   margin: 8px 0 0;
+  list-style: none; /* 🔥 점 제거 */
 }
+
+/* 칩: 이전 높이로 얇게 복구 */
 .chip {
-  width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px; /* 🔥 얇고 컴팩트하게 */
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   background: #f8fafc;
+  font-size: 14px; /* 🔥 이전보다 살짝 작은 글자 */
   cursor: pointer;
-  font-weight: 600;
   transition:
-    transform 0.08s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
+    background 0.12s ease,
+    transform 0.08s ease;
 }
+
 .chip:hover {
   background: #f3f4f6;
   transform: translateY(-1px);
 }
-.chip:active {
-  transform: translateY(0);
-}
+
 .chip__id {
   display: inline-flex;
   align-items: center;
@@ -75,10 +82,24 @@ function makeTodos(routineId: number) {
   color: #fff;
   padding: 0 6px;
 }
+
 .chip__name {
   color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 150px; /* 너무 길어지지 않도록 제한 */
+}
+
+/* X 버튼 */
+.chip__remove {
+  font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+.chip__remove:hover {
+  background: #e5e7eb;
 }
 </style>

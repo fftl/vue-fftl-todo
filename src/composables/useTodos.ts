@@ -1,6 +1,6 @@
 import { ref, onMounted } from 'vue'
-import { addRoutine, getRoutines, makeTodos } from '@/services/routine'
-import { getTodos, addTodo, checkTodo } from '@/services/todo'
+import { addRoutine, getRoutines, makeTodos, deleteRoutine } from '@/services/routine'
+import { getTodos, addTodo, checkTodo, deleteTodo } from '@/services/todo'
 import type { Routine, RoutineRequest } from '@/types/routine'
 import type { Todo } from '@/types/todo'
 
@@ -72,6 +72,27 @@ export function useTodos() {
     // "2025-09-26" → 보기 좋게
     return new Date(d).toLocaleDateString()
   }
+
+  async function removeTodo(todo: Todo) {
+    try {
+      await deleteTodo(todo.todoId) // /todos/{id} DELETE 같은 API
+      todos.value = todos.value.filter((t) => t.todoId !== todo.todoId)
+    } catch (e) {
+      console.error(e)
+      // TODO: 토스트로 "삭제 실패" 표시
+    }
+  }
+
+  async function removeRoutine(routine: Routine) {
+    try {
+      await deleteTodo(routine.routineId) // /todos/{id} DELETE 같은 API
+      routines.value = routines.value.filter((r) => r.routineId !== routine.routineId)
+    } catch (e) {
+      console.error(e)
+      // TODO: 토스트로 "삭제 실패" 표시
+    }
+  }
+
   return {
     text,
     loading,
@@ -81,6 +102,7 @@ export function useTodos() {
     onCreateRoutine,
     makeTodosByRoutine,
     doAddTodo,
+    removeTodo,
     toggle,
     fmt,
   }
