@@ -2,8 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import type { SignUpRequest } from '@/types/member'
 import { idCheck, signUp, emailValidate } from '@/services/member'
-// emailValidate는 POST /auth/email/validate 를 호출한다고 가정
-// 반환 예시: { formatValid: boolean, domainValid: boolean, mxFound: boolean, disposable: boolean, suggestion?: string|null }
 
 const username = ref('')
 const password = ref('')
@@ -11,6 +9,11 @@ const passwordCheck = ref('')
 
 const email = ref('')
 const emailConfirm = ref('')
+
+// 아이디 검사 상태 추가
+type IdStatus = 'idle' | 'checking' | 'available' | 'duplicate'
+const idStatus = ref<IdStatus>('idle')
+const idMsg = ref('')
 
 // 이메일 검사 상태
 type EmailStatus = 'idle' | 'checking' | 'ok' | 'error'
@@ -22,10 +25,40 @@ const loadingIdCheck = ref(false)
 const loadingEmailCheck = ref(false)
 const loadingSignUp = ref(false)
 
-function doIdCheck() {
-  if (!username.value || username.value.trim().length < 5) return
+// 아이디 입력이 바뀌면 검사 상태 리셋
+watch(username, () => {
+  idStatus.value = 'idle'
+  idMsg.value = ''
+})
+
+async function doIdCheck() {
+  if (!username.value || username.value.trim().length < 5) {
+    idStatus.value = 'idle'
+    idMsg.value = ''
+    return
+  }
+
   loadingIdCheck.value = true
-  idCheck(username.value).finally(() => (loadingIdCheck.value = false))
+  idStatus.value = 'checking'
+  idMsg.value = '확인 중...'
+
+  try {
+    const result = await idCheck(username.value)
+    // idCheck API가 { available: boolean } 형태로 반환한다고 가정
+    // 실제 API 응답 구조에 맞게 수정하세요
+    if (!result) {
+      idStatus.value = 'available'
+      idMsg.value = '사용 가능한 아이디입니다.'
+    } else {
+      idStatus.value = 'duplicate'
+      idMsg.value = '이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.'
+    }
+  } catch (e) {
+    idStatus.value = 'duplicate'
+    idMsg.value = '아이디 확인 중 오류가 발생했습니다.'
+  } finally {
+    loadingIdCheck.value = false
+  }
 }
 
 // 이메일 더블 입력 일치 여부
@@ -41,10 +74,14 @@ const usernameValid = computed(() => username.value.trim().length >= 5)
 // 이메일 검사가 통과되었는지
 const emailValidatedOk = computed(() => emailStatus.value === 'ok')
 
+// 아이디 검사가 통과되었는지
+const idValidatedOk = computed(() => idStatus.value === 'available')
+
 // 회원가입 버튼 활성화 조건
 const canSubmit = computed(
   () =>
     usernameValid.value &&
+    idValidatedOk.value &&
     passwordValid.value &&
     passwordMatch.value &&
     emailMatch.value &&
@@ -59,7 +96,6 @@ watch([email, emailConfirm], () => {
 })
 
 async function doEmailCheck() {
-  // 기본적인 클라이언트 쪽 빠른 가드
   if (!emailMatch.value) {
     emailStatus.value = 'error'
     emailMsg.value = '이메일이 서로 일치하지 않습니다.'
@@ -143,7 +179,10 @@ async function doSignUp() {
           {{ loadingIdCheck ? '확인 중...' : '중복확인' }}
         </button>
       </div>
-      <p v-if="username && !usernameValid" class="hint error">아이디는 3자 이상이어야 합니다.</p>
+      <p v-if="username && !usernameValid" class="hint error">아이디는 5자 이상이어야 합니다.</p>
+      <p v-if="idStatus === 'checking'" class="hint">아이디 확인 중...</p>
+      <p v-if="idStatus === 'available'" class="hint success">{{ idMsg }}</p>
+      <p v-if="idStatus === 'duplicate'" class="hint error">{{ idMsg }}</p>
     </div>
 
     <!-- 비밀번호 -->
@@ -294,10 +333,9 @@ label {
   cursor: not-allowed;
 }
 
-/* 버튼 크기 통일 */
 .btn-secondary {
-  min-width: 100px; /* 추가 */
-  padding: 8px 0; /* 기존보다 균형 있게 */
+  min-width: 100px;
+  padding: 8px 0;
   border: 1px solid #4a90e2;
   background: white;
   color: #2563eb;
@@ -305,7 +343,7 @@ label {
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
-  flex-shrink: 0; /* 추가: 버튼이 줄어들지 않게 */
+  flex-shrink: 0;
 }
 
 .btn-secondary:disabled {
@@ -313,7 +351,6 @@ label {
   cursor: not-allowed;
 }
 
-/* 모바일에서 꽉 차게 하고 싶다면 옵션(원하면 유지) */
 @media (max-width: 420px) {
   .signup-card {
     --side-actions-width: 0px;
