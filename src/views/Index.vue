@@ -18,7 +18,7 @@ async function doLogin() {
 
   try {
     const res = await login(loginRequest)
-    auth.setToken(res.access, res.refresh)
+    auth.setToken(res.access, res.refresh, username.value)
     await router.push('/main')
   } catch (e) {
     console.error(e)

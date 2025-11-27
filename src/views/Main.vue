@@ -60,6 +60,10 @@ async function onLogout() {
 }
 
 onMounted(() => fetchHistories(selectedDate.value))
+
+console.log('Pinia username:', auth.username)
+console.log('localStorage username:', localStorage.getItem('username'))
+console.log('전체 state:', auth.$state)
 </script>
 
 <template>
@@ -67,6 +71,10 @@ onMounted(() => fetchHistories(selectedDate.value))
     <header class="page__header">
       <h1 class="page__title">Routines</h1>
       <div class="header-actions">
+        <span
+          ><b>{{ auth.username }}</b
+          >님 환영합니다!
+        </span>
         <button class="btn btn--ghost" @click="onLogout">로그아웃</button>
       </div>
     </header>

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { SignUpRequest } from '@/types/member'
-import { idCheck, signUp, emailValidate } from '@/services/member'
+import type { SignUpRequest, LoginRequest } from '@/types/member'
+import { idCheck, signUp, emailValidate, login } from '@/services/member'
+import { useAuthStore } from '@/stores/auth'
+import router from '@/router'
 
 const username = ref('')
 const password = ref('')
 const passwordCheck = ref('')
+const auth = useAuthStore()
 
 const email = ref('')
 const emailConfirm = ref('')
@@ -145,8 +148,24 @@ async function doSignUp() {
     password: password.value,
     email: email.value.trim(),
   }
+
   try {
-    await signUp(signUpRequest)
+    const result = await signUp(signUpRequest)
+    if (result != null) {
+      const loginRequest: LoginRequest = {
+        username: username.value,
+        password: password.value,
+      }
+
+      try {
+        const res = await login(loginRequest)
+        auth.setToken(res.access, res.refresh, username.value)
+        await router.push('/main')
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     // TODO: 성공 후 라우팅/알림
   } finally {
     loadingSignUp.value = false

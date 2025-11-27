@@ -1,23 +1,30 @@
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    accessToken: localStorage.getItem('accessToken') || '',
-    refreshToken: localStorage.getItem('refreshToken') || '',
+    username: '',
+    accessToken: '',
+    refreshToken: '',
   }),
 
   actions: {
-    setToken(access: string, refresh: string) {
+    setToken(access: string, refresh: string, username: string) {
       this.accessToken = access
       this.refreshToken = refresh
-      localStorage.setItem('accessToken', access)
-      localStorage.setItem('refreshToken', refresh)
+      this.username = username
     },
     clearTokens() {
       this.accessToken = ''
       this.refreshToken = ''
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      this.username = ''
     },
   },
+
+  persist: true,
 })
